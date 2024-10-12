@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your HTML</title>
+    <style>
+        /* Internal CSS */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        h2 {
+            color: #4CAF50;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .destroy-button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .destroy-button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Deploy Your HTML</h1>
+</header>
+
+<div class="content">
+    <h2>Enter Your HTML Code Below:</h2>
+    <form id="htmlForm">
+        <label for="websiteName">Name:</label><br>
+        <input type="text" id="websiteName" placeholder="Enter website title" required><br><br>
+
+        <label for="htmlCode">HTML Code:</label><br>
+        <textarea id="htmlCode" rows="10" cols="50" placeholder="Enter your HTML code here..." required></textarea><br><br>
+
+        <button type="button" onclick="deployWebsite()">Deploy!</button>
+        <button type="button" class="destroy-button" onclick="destroyAllWebsites()">Destroy All Websites</button>
+    </form>
+    <h2>Deployed Websites:</h2>
+    <ul id="deployedWebsites"></ul>
+</div>
+
+<footer>
+    <p>&copy; 2024 Simple Static Host. All rights reserved.</p>
+</footer>
+
+<script>
+    function deployWebsite() {
+        const websiteName = document.getElementById('websiteName').value.trim();
+        const htmlCode = document.getElementById('htmlCode').value.trim();
+        
+        // Validate inputs
+        if (websiteName === "" || htmlCode === "") {
+            alert("Please provide both a name and HTML code.");
+            return;
+        }
+
+        // Create a unique ID for the website
+        const id = Date.now(); // Using timestamp as a unique ID
+        
+        // Save the HTML code to local storage using the ID as the key
+        localStorage.setItem(`website_${id}`, htmlCode);
+        
+        // Construct the shortened URL
+        const url = `website.html?id=${id}&name=${encodeURIComponent(websiteName)}`;
+
+        // Save the deployment details to local storage (optional)
+        const deployedWebsites = JSON.parse(localStorage.getItem('deployedWebsites')) || [];
+        deployedWebsites.push({ id: id, name: websiteName, url: url });
+        localStorage.setItem('deployedWebsites', JSON.stringify(deployedWebsites));
+
+        // Redirect to the new website
+        window.location.href = url;
+    }
+
+    // Function to load deployed websites
+    function loadDeployedWebsites() {
+        const deployedWebsites = JSON.parse(localStorage.getItem('deployedWebsites')) || [];
+        const list = document.getElementById('deployedWebsites');
+        list.innerHTML = ''; // Clear existing list
+
+        deployedWebsites.forEach(site => {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `<a href="${site.url}" target="_blank">${site.name}</a>`;
+            listItem.innerHTML += ` <button onclick="deleteWebsite(${site.id})">Delete</button>`; // Add delete button for individual sites
+            list.appendChild(listItem);
+        });
+    }
+
+    // Function to delete an individual website
+    function deleteWebsite(id) {
+        const deployedWebsites = JSON.parse(localStorage.getItem('deployedWebsites')) || [];
+        const updatedWebsites = deployedWebsites.filter(site => site.id !== id); // Remove the website with the matching ID
+        localStorage.removeItem(`website_${id}`); // Remove the HTML from local storage
+        localStorage.setItem('deployedWebsites', JSON.stringify(updatedWebsites));
+        loadDeployedWebsites(); // Refresh the list
+    }
+
+    // Function to destroy all deployed websites
+    function destroyAllWebsites() {
+        if (confirm("Are you sure you want to destroy all deployed websites? This action cannot be undone.")) {
+            // Clear the local storage
+            localStorage.removeItem('deployedWebsites');
+            // Remove all website HTML stored in local storage
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('website_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            alert("All websites have been destroyed.");
+            loadDeployedWebsites(); // Reload the list to show it's empty
+        }
+    }
+
+    // Load the deployed websites on page load
+    window.onload = loadDeployedWebsites;
+</script>
+
+</body>
+</html>

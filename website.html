@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Deployed Website</title>
+</head>
+<body>
+
+<div class="content">
+    <div id="websiteContent"></div> <!-- Only HTML content will be displayed here -->
+</div>
+
+<script>
+    // Function to get URL parameters
+    function getQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            id: params.get('id'), // Getting the ID
+            name: params.get('name') // Getting the name
+        };
+    }
+
+    // Function to load the website
+    function loadWebsite() {
+        const { id } = getQueryParams();
+        const deployedWebsites = JSON.parse(localStorage.getItem('deployedWebsites')) || [];
+
+        // Check if the website is valid
+        const isValidWebsite = deployedWebsites.some(site => site.id === parseInt(id));
+
+        // If the website is not valid, display a message
+        if (!isValidWebsite) {
+            document.body.innerHTML = '<h1>This website has been destroyed and is no longer accessible.</h1>';
+            return;
+        }
+
+        // Retrieve the HTML code from local storage using the ID
+        const htmlCode = localStorage.getItem(`website_${id}`);
+
+        // Insert the HTML code into the content div
+        document.getElementById('websiteContent').innerHTML = htmlCode; 
+
+        // Create a temporary DOM element to extract the title from the HTML string
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlCode;
+
+        // Get the title from the provided HTML, if it exists
+        const titleTag = tempDiv.querySelector('title');
+        if (titleTag) {
+            document.title = titleTag.innerText; // Set the document title to the title found in the HTML
+        } else {
+            document.title = 'Your Deployed Website'; // Fallback title if no title is provided
+        }
+    }
+
+    // Load the website on page load
+    window.onload = loadWebsite;
+</script>
+
+</body>
+</html>
